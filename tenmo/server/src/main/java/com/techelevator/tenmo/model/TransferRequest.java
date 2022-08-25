@@ -1,11 +1,12 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.NegativeOrZero;
 import java.math.BigDecimal;
 
 public class TransferRequest {
 
 
-    private long fromAccount;
+//    private long fromAccount;
     private long toAccount;
     private BigDecimal transferAmount;
 
@@ -13,11 +14,11 @@ public class TransferRequest {
     public TransferRequest() {
     }
 
-
-    public TransferRequest(long toAccount, BigDecimal transferAmount) {
-        this.toAccount = toAccount;
-        this.transferAmount = transferAmount;
-    }
+//    public TransferRequest(long fromAccount, long toAccount, BigDecimal transferAmount) {
+//        this.fromAccount = fromAccount;
+//        this.toAccount = toAccount;
+//        this.transferAmount = transferAmount;
+//    }
 
 
 
@@ -36,4 +37,12 @@ public class TransferRequest {
     public void setTransferAmount(BigDecimal transferAmount) {
         this.transferAmount = transferAmount;
     }
+
+//    public long getFromAccount() {
+//        return fromAccount;
+//    }
+//
+//    public void setFromAccount(long fromAccount) {
+//        this.fromAccount = fromAccount;
+//    }
 }

@@ -18,7 +18,7 @@ public class JdbcAccountDao implements AccountDao{
 
 
     @Override
-    public Account getAccountById(long accountId) {
+    public Account getAccountByAccountId(long accountId) {
         Account account= null;
         String sql = "SELECT account_id, user_id, balance FROM account " +
                 "WHERE account_id = ?;";
@@ -43,31 +43,19 @@ public class JdbcAccountDao implements AccountDao{
     }
 
 
-//
-//    @Override
-//    public Account createAccount(long userId) {
-//
-//
-//
-//
-//        return null;
-//    }
-
     @Override
     public void addToAccountBalance(long accountId, BigDecimal amount) {
-       Account updatedAccount= getAccountById(accountId);
+       Account updatedAccount= getAccountByAccountId(accountId);
        updatedAccount.addToBalance(amount);
         String sql = "UPDATE account " +
                 "SET balance = ? " +
                 "WHERE account_id = ?";
        jdbcTemplate.update(sql, updatedAccount.getBalance(), accountId);
-
-
     }
 
     @Override
     public void subtractFromAccountBalance(long accountId, BigDecimal amount) {
-        Account updatedAccount= getAccountById(accountId);
+        Account updatedAccount= getAccountByAccountId(accountId);
         updatedAccount.subtractFromBalance(amount);
         String sql = "UPDATE account " +
                 "SET balance = ? " +

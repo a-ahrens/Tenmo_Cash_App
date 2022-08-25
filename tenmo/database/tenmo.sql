@@ -45,7 +45,7 @@ CREATE TABLE transfer (
 	from_account int NOT NULL,
 	to_account int NOT NULL,
 	transfer_amount decimal(13, 2) NOT NULL,
-	time_stamp timestamp,
+	time_stamp timestamp DEFAULT current_timestamp,
 	status varchar(10) NOT NULL,
 	CONSTRAINT PK_transfer PRIMARY KEY (transfer_id),
 	CONSTRAINT FK_transfer_account_from FOREIGN KEY (from_account) REFERENCES account (account_id),

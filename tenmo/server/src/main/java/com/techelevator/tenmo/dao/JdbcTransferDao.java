@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.TransferRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -25,7 +26,7 @@ public class JdbcTransferDao implements TransferDao {
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
                 "time_stamp, status " +
                 "FROM transfer " +
-                "WHERE transfer_id= ?;";
+                "WHERE transfer_id = ?;";
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
         if (results.next()) {
             transfer = mapRowToTransfer(results);
@@ -34,15 +35,14 @@ public class JdbcTransferDao implements TransferDao {
     }
 
     @Override
-    public List<Transfer> getTransfersFromUserId(long userId) {
+    public List<Transfer> getTransferHistory(long accountId) {
         List<Transfer> transfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
                 "time_stamp, status " +
                 "FROM transfer " +
-                "JOIN account ON account.account_id= transfer.from_account " +
-                "JOIN tenmo_user ON tenmo_user.user_id= account.user_id " +
-                "WHERE tenmo_user.user_id= ?;";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
+                "WHERE from_account = ? OR to_account = ?; ";
+
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while (results.next()) {
             Transfer transfer = mapRowToTransfer(results);
             transfers.add(transfer);
@@ -52,33 +52,48 @@ public class JdbcTransferDao implements TransferDao {
 
 
     @Override
-    public List<Transfer> getTransfersToUserId(long userId) {
-        List<Transfer> transfers = new ArrayList<>();
+    public List<Transfer> getSentTransfersByAccountId(long accountId) {
+        List<Transfer> sentTransfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
                 "time_stamp, status " +
                 "FROM transfer " +
-                "JOIN account ON account.account_id= transfer.to_account " +
-                "JOIN tenmo_user ON tenmo_user.user_id= account.user_id " +
-                "WHERE tenmo_user.user_id= ?;";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
+                "WHERE from_account = ?; ";
+
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
         while (results.next()) {
             Transfer transfer = mapRowToTransfer(results);
-            transfers.add(transfer);
+            sentTransfers.add(transfer);
         }
-        return transfers;
+        return sentTransfers;
     }
 
 
     @Override
-    public List<Transfer> getPendingTransfers(long userId) {
+    public List<Transfer> getReceivedTransfersByAccountId(long accountId) {
+        List<Transfer> receivedTransfers = new ArrayList<>();
+        String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
+                "time_stamp, status " +
+                "FROM transfer " +
+                "WHERE to_account = ?; ";
+
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
+        while (results.next()) {
+            Transfer transfer = mapRowToTransfer(results);
+            receivedTransfers.add(transfer);
+        }
+        return receivedTransfers;
+    }
+
+
+    @Override
+    public List<Transfer> getPendingTransfers(long accountId) {
         List<Transfer> pendingTransfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
                 "time_stamp, status " +
                 "FROM transfer " +
-                "JOIN account ON account.account_id= transfer.to_account " +
-                "JOIN tenmo_user ON tenmo_user.user_id= account.user_id " +
-                "WHERE tenmo_user.user_id= ?  AND status LIKE 'pending' ;";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
+                "WHERE (from_account = ? OR to_account = ?) AND status LIKE 'Pending'; ";
+
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while (results.next()) {
             Transfer transfer = mapRowToTransfer(results);
             pendingTransfers.add(transfer);
@@ -87,15 +102,14 @@ public class JdbcTransferDao implements TransferDao {
     }
 
     @Override
-    public Transfer createTransfer(Transfer newTransfer) {
+    public Transfer createTransfer(long fromAccountId ,TransferRequest newTransfer) {
         String sql = "INSERT INTO transfer(from_account, to_account," +
-                "transfer_amount, time_stamp, status) VALUES (?, ?, ?, ?, ?) " +
+                "transfer_amount) VALUES (?, ?, ?) " +
                 "RETURNING transfer_id;";
-        Long transferId = new Long(0);
+        Long transferId = 0L;
         try {
-            transferId = jdbcTemplate.queryForObject(sql, Long.class, newTransfer.getFromAccount(),
-                    newTransfer.getToAccount(), newTransfer.getTransferAmount(),
-                    newTransfer.getTimeStamp(), newTransfer.getStatus());
+            transferId = jdbcTemplate.queryForObject(sql, Long.class, fromAccountId,
+                    newTransfer.getToAccount(), newTransfer.getTransferAmount());
         } catch (DataAccessException e) {
             System.out.println("DataAccessException");
         }
