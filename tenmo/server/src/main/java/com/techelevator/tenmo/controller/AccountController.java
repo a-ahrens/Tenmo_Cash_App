@@ -4,10 +4,12 @@ package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransferDao;
 import com.techelevator.tenmo.dao.UserDao;
+import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -24,6 +26,18 @@ public class AccountController {
         this.userDao = userDao;
     }
 
+    //accounts RequestMethods
+    @RequestMapping(path = "/account", method = RequestMethod.GET)
+    public Account getUserAccount(Principal principal){
+        String userName = principal.getName();
+        long userId = userDao.findIdByUsername(userName);
+        Account userAccount = accountDao.getAccountByUserId(userId);
+
+        return userAccount;
+
+    }
+
+
     // Get a list of all pending transfers
 
 
@@ -38,16 +52,16 @@ public class AccountController {
 
     @RequestMapping( path = "/transfer/{id}", method = RequestMethod.GET)
     public Transfer getTransferById(@PathVariable long id){
-        return TransferDao.getTransferById(id);
+        return transferDao.getTransferById(id);
     }
 
 
-    //Get a transfer by userId
-
-    @RequestMapping( path = "/transfer/{id}", method = RequestMethod.GET)
-    public Transfer getTransferById(@PathVariable long id){
-        return TransferDao.getTransferById(id);
-    }
+//    //Get a transfer by userId
+//
+//    @RequestMapping( path = "/transfer/{id}", method = RequestMethod.GET)
+//    public Transfer getTransferById(@PathVariable long id){
+//        return TransferDao.getTransferById(id);
+//    }
 
 
     // Create a new transfer
@@ -55,7 +69,7 @@ public class AccountController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping( path = "/transfer", method = RequestMethod.POST)
     public Transfer addTransfer(@RequestBody Transfer transfer)  {
-        return TransferDao.
+        return transferDao.createTransfer(transfer);
     }
 
 //

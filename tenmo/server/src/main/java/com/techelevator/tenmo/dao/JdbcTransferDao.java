@@ -4,10 +4,12 @@ import com.techelevator.tenmo.model.Transfer;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class JdbcTransferDao implements TransferDao {
 
     private JdbcTemplate jdbcTemplate;
@@ -119,7 +121,7 @@ public class JdbcTransferDao implements TransferDao {
         transfer.setFromAccount(rs.getLong("from_account"));
         transfer.setToAccount(rs.getLong("to_account"));
         transfer.setTransferAmount(rs.getBigDecimal("transfer_amount"));
-        transfer.setTimeStamp(rs.getTimestamp("timestamp").toLocalDateTime());
+        transfer.setTimeStamp(rs.getTimestamp("time_stamp").toLocalDateTime());
         transfer.setStatus(rs.getString("status"));
 return transfer;
 

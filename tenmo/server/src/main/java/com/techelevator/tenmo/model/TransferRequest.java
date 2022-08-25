@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public class TransferRequest {
 
 
+    private long fromAccount;
     private long toAccount;
     private BigDecimal transferAmount;
 
