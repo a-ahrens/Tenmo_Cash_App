@@ -4,14 +4,12 @@ package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransferDao;
 import com.techelevator.tenmo.dao.UserDao;
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.TransferId;
-import com.techelevator.tenmo.model.TransferRequest;
+import com.techelevator.tenmo.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +28,22 @@ public class AccountController {
         this.userDao = userDao;
     }
 
+    //returns list of all users you can send TE Bucks to
+
+    @RequestMapping(path = "/user/all", method=RequestMethod.GET)
+    public List<User> findAll()
+    {
+        return userDao.findAll();
+    }
+
+@RequestMapping(path = "/user", method = RequestMethod.GET)
+public List<User> findOtherUsers(Principal principal) {
+        String userName = principal.getName();
+    long userId = userDao.findIdByUsername(userName);
+
+    return userDao.findOtherUsers(userId);
+}
+
     //accounts RequestMethods
     @RequestMapping(path = "/account", method = RequestMethod.GET)
     public Account getUserAccount(Principal principal){
@@ -40,6 +54,21 @@ public class AccountController {
         return userAccount;
 
     }
+
+    //Get account balance specifically
+    @RequestMapping(path="/account/balance", method=RequestMethod.GET)
+    public BigDecimal getBalance(Principal principal){
+        String userName = principal.getName();
+        long userId = userDao.findIdByUsername(userName);
+
+        Account userAccount = accountDao.getAccountByUserId(userId);
+         return userAccount.getBalance();
+
+
+
+    }
+
+
 
     //Get a transfer history for User (collects all sent and received)
     @RequestMapping( path = "/transfer", method = RequestMethod.GET)
@@ -110,6 +139,26 @@ public class AccountController {
     public Transfer getTransferById(@RequestBody TransferId transferId){
         return transferDao.getTransferById(transferId.getTransferId());
     }
+    // TODO : must be owned by user
+    // TODO : exceptions for non pending status
+    @RequestMapping( path = "/transfer/approve", method = RequestMethod.PUT)
+    public Transfer approveTransfer(@RequestBody TransferId transferId){
+        Transfer approvedTransfer= transferDao.getTransferById(transferId.getTransferId());
+        approvedTransfer.setStatus("Approved");
+        accountDao.subtractFromAccountBalance(approvedTransfer.getFromAccount(), approvedTransfer.getTransferAmount());
+        accountDao.addToAccountBalance(approvedTransfer.getToAccount(), approvedTransfer.getTransferAmount());
+        transferDao.updateStatus(approvedTransfer);
+        return approvedTransfer;
+    }
+// TODO : exceptions for non pending status
+// TODO : must be owned by user
+    @RequestMapping( path = "/transfer/decline", method = RequestMethod.PUT)
+    public Transfer declineTransfer(@RequestBody TransferId transferId){
+        Transfer declineTransfer= transferDao.getTransferById(transferId.getTransferId());
+        declineTransfer.setStatus("Declined");
+        transferDao.updateStatus(declineTransfer);
+        return declineTransfer;
+    }
 
     // Create a new transfer
     @ResponseStatus(HttpStatus.CREATED)
@@ -120,21 +169,12 @@ public class AccountController {
         long userId = userDao.findIdByUsername(userName);
         Account userAccount = accountDao.getAccountByUserId(userId);
 
-        if(userAccount.getBalance().compareTo(transferRequest.getTransferAmount()) >= 0){
-            accountDao.subtractFromAccountBalance(userAccount.getAccountId(), transferRequest.getTransferAmount());
-            accountDao.addToAccountBalance(transferRequest.getToAccount(), transferRequest.getTransferAmount());
+        if(userAccount.getBalance().compareTo(transferRequest.getTransferAmount()) >= 0 && userAccount.getAccountId() != transferRequest.getToAccount()){
             return transferDao.createTransfer(userAccount.getAccountId() ,transferRequest);
         }
 
-        //check value in current from account
-            //confirm value fromAccount.getBalance >= transferRequest.getTransfer_Amount
-            //confirm from_account =! to_account
-            //transfer > 0;
-
     return null;
     }
-
-//
 
 
 

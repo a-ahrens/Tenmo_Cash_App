@@ -21,6 +21,7 @@ public interface AccountDao {
 
     void subtractFromAccountBalance(long accountId, BigDecimal amount);
 
+    BigDecimal getBalance(long accountId);
 
 
 

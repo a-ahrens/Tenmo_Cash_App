@@ -19,7 +19,7 @@ public interface TransferDao {
 
     Transfer createTransfer(long fromAccountId ,TransferRequest newTransfer);
 
-    boolean updateStatus(String status, Transfer updatedTransfer);
+    boolean updateStatus(Transfer updatedTransfer);
 
 
 

@@ -91,7 +91,8 @@ public class JdbcTransferDao implements TransferDao {
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
                 "time_stamp, status " +
                 "FROM transfer " +
-                "WHERE (from_account = ? OR to_account = ?) AND status LIKE 'Pending'; ";
+                "WHERE (from_account = ? OR to_account = ?) AND status LIKE 'Pending'" +
+                "ORDER BY from_account"  ;
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while (results.next()) {
@@ -117,12 +118,12 @@ public class JdbcTransferDao implements TransferDao {
     }
 
     @Override
-    public boolean updateStatus(String status, Transfer updatedTransfer) {
+    public boolean updateStatus(Transfer updatedTransfer) {
         String sql = "UPDATE transfer " +
                 "SET status = ? " +
                 "WHERE transfer_id = ?";
         if (getTransferById(updatedTransfer.getTransferId()) != null) {
-            jdbcTemplate.update(sql, status, updatedTransfer.getTransferId());
+            jdbcTemplate.update(sql, updatedTransfer.getStatus(), updatedTransfer.getTransferId());
             return true;
         }
 
