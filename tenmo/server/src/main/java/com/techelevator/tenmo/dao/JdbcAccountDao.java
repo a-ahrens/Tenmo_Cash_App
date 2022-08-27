@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.Exceptions.Account.AccountNotFoundException;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,7 +22,7 @@ public class JdbcAccountDao implements AccountDao{
 
 
     @Override
-    public Account getAccountByAccountId(long accountId) {
+    public Account getAccountByAccountId(long accountId){
         Account account= null;
         String sql = "SELECT account_id, user_id, balance FROM account " +
                 "WHERE account_id = ?;";

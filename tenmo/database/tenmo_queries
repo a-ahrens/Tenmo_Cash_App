@@ -1,0 +1,25 @@
+select *
+from tenmo_user;
+
+select *
+from account;
+
+SELECT tenmo_user.username AS Account_Holder, account_id, account.user_id, balance
+FROM account
+JOIN tenmo_user ON tenmo_user.user_id = account.user_id
+Order BY account_id;
+
+select *
+from transfer;
+
+Select  transfer_id, tenmo_user.username AS Sender, from_account, to_account, transfer_amount, time_stamp, status
+FROM transfer
+JOIN account ON account.account_id = transfer.from_account
+JOIN tenmo_user ON tenmo_user.user_id = account.user_id
+Order BY transfer_id;
+
+Select  transfer_id, from_account, tenmo_user.username AS Receiver, to_account, transfer_amount, time_stamp, status
+FROM transfer
+JOIN account ON account.account_id = transfer.to_account
+JOIN tenmo_user ON tenmo_user.user_id = account.user_id
+Order BY transfer_id;

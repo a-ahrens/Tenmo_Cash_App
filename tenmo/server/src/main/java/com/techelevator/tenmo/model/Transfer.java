@@ -11,18 +11,19 @@ public class Transfer {
     private BigDecimal transferAmount;
     private LocalDateTime timeStamp;
     private String status= "Pending";
-
+    private String description = " ";
 
     public Transfer() {
     }
 
-    public Transfer(long transferId, long fromAccount, long toAccount, BigDecimal transferAmount, LocalDateTime timeStamp, String status) {
+    public Transfer(long transferId, long fromAccount, long toAccount, BigDecimal transferAmount, LocalDateTime timeStamp, String status, String description) {
         this.transferId = transferId;
         this.fromAccount = fromAccount;
         this.toAccount = toAccount;
         this.transferAmount = transferAmount;
         this.timeStamp = timeStamp;
         this.status = status;
+        this.description = description;
     }
 
 
@@ -72,5 +73,13 @@ public class Transfer {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

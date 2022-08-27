@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.Exceptions.Transfer.TransferIdNotFoundException;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.TransferRequest;
 import org.springframework.dao.DataAccessException;
@@ -14,38 +15,35 @@ import java.util.List;
 public class JdbcTransferDao implements TransferDao {
 
     private JdbcTemplate jdbcTemplate;
-
     public JdbcTransferDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
     @Override
-    public Transfer getTransferById(long transferId) {
+    public Transfer getTransferById(long transferId) throws TransferIdNotFoundException{
         Transfer transfer = null;
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
-                "time_stamp, status " +
-                "FROM transfer " +
-                "WHERE transfer_id = ?;";
+                     "time_stamp, status, description " +
+                     "FROM transfer " +
+                     "WHERE transfer_id = ?;";
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
         if (results.next()) {
-            transfer = mapRowToTransfer(results);
+            return mapRowToTransfer(results);
         }
-        return transfer;
+        throw new TransferIdNotFoundException();
     }
 
     @Override
     public List<Transfer> getTransferHistory(long accountId) {
         List<Transfer> transfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
-                "time_stamp, status " +
-                "FROM transfer " +
-                "WHERE from_account = ? OR to_account = ?; ";
+                     "time_stamp, status, description " +
+                     "FROM transfer " +
+                     "WHERE from_account = ? OR to_account = ?; ";
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while (results.next()) {
-            Transfer transfer = mapRowToTransfer(results);
-            transfers.add(transfer);
+            transfers.add(mapRowToTransfer(results));
         }
         return transfers;
     }
@@ -55,14 +53,13 @@ public class JdbcTransferDao implements TransferDao {
     public List<Transfer> getSentTransfersByAccountId(long accountId) {
         List<Transfer> sentTransfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
-                "time_stamp, status " +
-                "FROM transfer " +
-                "WHERE from_account = ?; ";
+                     "time_stamp, status, description " +
+                     "FROM transfer " +
+                     "WHERE from_account = ?; ";
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
         while (results.next()) {
-            Transfer transfer = mapRowToTransfer(results);
-            sentTransfers.add(transfer);
+            sentTransfers.add(mapRowToTransfer(results));
         }
         return sentTransfers;
     }
@@ -72,14 +69,13 @@ public class JdbcTransferDao implements TransferDao {
     public List<Transfer> getReceivedTransfersByAccountId(long accountId) {
         List<Transfer> receivedTransfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
-                "time_stamp, status " +
-                "FROM transfer " +
-                "WHERE to_account = ?; ";
+                     "time_stamp, status, description " +
+                     "FROM transfer " +
+                     "WHERE to_account = ?; ";
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
         while (results.next()) {
-            Transfer transfer = mapRowToTransfer(results);
-            receivedTransfers.add(transfer);
+            receivedTransfers.add(mapRowToTransfer(results));
         }
         return receivedTransfers;
     }
@@ -89,28 +85,27 @@ public class JdbcTransferDao implements TransferDao {
     public List<Transfer> getPendingTransfers(long accountId) {
         List<Transfer> pendingTransfers = new ArrayList<>();
         String sql = "SELECT transfer_id, from_account, to_account, transfer_amount, " +
-                "time_stamp, status " +
-                "FROM transfer " +
-                "WHERE (from_account = ? OR to_account = ?) AND status LIKE 'Pending'" +
-                "ORDER BY from_account"  ;
+                     "time_stamp, status, description " +
+                     "FROM transfer " +
+                     "WHERE (from_account = ? OR to_account = ?) AND status LIKE 'Pending'" +
+                     "ORDER BY from_account"  ;
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while (results.next()) {
-            Transfer transfer = mapRowToTransfer(results);
-            pendingTransfers.add(transfer);
+            pendingTransfers.add(mapRowToTransfer(results));
         }
         return pendingTransfers;
     }
 
     @Override
-    public Transfer createTransfer(long fromAccountId ,TransferRequest newTransfer) {
-        String sql = "INSERT INTO transfer(from_account, to_account," +
-                "transfer_amount) VALUES (?, ?, ?) " +
-                "RETURNING transfer_id;";
+    public Transfer createTransfer(long fromAccountId ,TransferRequest newTransfer) throws TransferIdNotFoundException{
+        String sql = "INSERT INTO transfer(from_account, to_account, " +
+                     "transfer_amount, description) VALUES (?, ?, ?, ?) " +
+                     "RETURNING transfer_id;";
         Long transferId = 0L;
         try {
-            transferId = jdbcTemplate.queryForObject(sql, Long.class, fromAccountId,
-                    newTransfer.getToAccount(), newTransfer.getTransferAmount());
+            transferId = jdbcTemplate.queryForObject(sql, Long.class, fromAccountId, newTransfer.getToAccount(),
+                    newTransfer.getTransferAmount(), newTransfer.getDescription());
         } catch (DataAccessException e) {
             System.out.println("DataAccessException");
         }
@@ -118,16 +113,15 @@ public class JdbcTransferDao implements TransferDao {
     }
 
     @Override
-    public boolean updateStatus(Transfer updatedTransfer) {
+    public boolean updateStatus(Transfer updatedTransfer) throws TransferIdNotFoundException {
         String sql = "UPDATE transfer " +
-                "SET status = ? " +
-                "WHERE transfer_id = ?";
+                     "SET status = ? " +
+                     "WHERE transfer_id = ?";
         if (getTransferById(updatedTransfer.getTransferId()) != null) {
             jdbcTemplate.update(sql, updatedTransfer.getStatus(), updatedTransfer.getTransferId());
             return true;
         }
-
-        return false;
+        throw new TransferIdNotFoundException();
     }
 
     private Transfer mapRowToTransfer(SqlRowSet rs) {
@@ -138,7 +132,9 @@ public class JdbcTransferDao implements TransferDao {
         transfer.setTransferAmount(rs.getBigDecimal("transfer_amount"));
         transfer.setTimeStamp(rs.getTimestamp("time_stamp").toLocalDateTime());
         transfer.setStatus(rs.getString("status"));
-return transfer;
+        transfer.setDescription(rs.getString("description"));
+
+        return transfer;
 
     }
 

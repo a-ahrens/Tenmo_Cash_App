@@ -7,23 +7,13 @@ import java.math.BigDecimal;
 
 public class TransferRequest {
 
-
-//    private long fromAccount;
     private long toAccount;
     @DecimalMin("0.01")
     private BigDecimal transferAmount;
-
+    private String description = " ";
 
     public TransferRequest() {
     }
-
-//    public TransferRequest(long fromAccount, long toAccount, BigDecimal transferAmount) {
-//        this.fromAccount = fromAccount;
-//        this.toAccount = toAccount;
-//        this.transferAmount = transferAmount;
-//    }
-
-
 
     public long getToAccount() {
         return toAccount;
@@ -41,11 +31,12 @@ public class TransferRequest {
         this.transferAmount = transferAmount;
     }
 
-//    public long getFromAccount() {
-//        return fromAccount;
-//    }
-//
-//    public void setFromAccount(long fromAccount) {
-//        this.fromAccount = fromAccount;
-//    }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
 }

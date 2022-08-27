@@ -1,11 +1,13 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public class Account {
 
     private long accountId;
     private long userId;
+    @PositiveOrZero
     private BigDecimal balance = new BigDecimal("1000.00");
 
     public Account() {
