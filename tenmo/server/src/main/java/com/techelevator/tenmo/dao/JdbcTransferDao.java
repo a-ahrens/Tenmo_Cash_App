@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.Exceptions.Transfer.TransferIdNotFoundException;
+import com.techelevator.tenmo.model.Request;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.TransferRequest;
 import org.springframework.dao.DataAccessException;
@@ -111,6 +112,22 @@ public class JdbcTransferDao implements TransferDao {
         }
         return getTransferById(transferId);
     }
+
+    @Override
+    public Transfer createTransferFromRequest(Request newTransfer) throws TransferIdNotFoundException{
+        String sql = "INSERT INTO transfer(from_account, to_account, " +
+                     "transfer_amount, status, description) VALUES (?, ?, ?, ?, ?) " +
+                     "RETURNING transfer_id;";
+        Long transferId = 0L;
+        try {
+            transferId = jdbcTemplate.queryForObject(sql, Long.class, newTransfer.getRequestee(), newTransfer.getRequester(),
+                    newTransfer.getRequestedAmount(), newTransfer.getStatus(), newTransfer.getDescription());
+        } catch (DataAccessException e) {
+            System.out.println("DataAccessException");
+        }
+        return getTransferById(transferId);
+    }
+
 
     @Override
     public boolean updateStatus(Transfer updatedTransfer) throws TransferIdNotFoundException {

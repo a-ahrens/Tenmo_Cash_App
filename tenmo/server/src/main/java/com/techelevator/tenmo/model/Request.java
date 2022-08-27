@@ -17,6 +17,19 @@ public class Request {
         return requestId;
     }
 
+    public Request() {
+    }
+
+    public Request(long requestId, long requester, long requestee, BigDecimal requestedAmount, LocalDateTime timeStamp, String status, String description) {
+        this.requestId = requestId;
+        this.requester = requester;
+        this.requestee = requestee;
+        this.requestedAmount = requestedAmount;
+        this.timeStamp = timeStamp;
+        this.status = status;
+        this.description = description;
+    }
+
     public void setRequestId(long requestId) {
         this.requestId = requestId;
     }

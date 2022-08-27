@@ -1,11 +1,13 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class RequestTransfer {
 
     private long requestee;
+    @DecimalMin("0.01")
     private BigDecimal requestedAmount;
     private String description = " ";
 

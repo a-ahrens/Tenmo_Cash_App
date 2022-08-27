@@ -2,9 +2,8 @@ package com.techelevator.tenmo.controller;
 
 
 
-import com.techelevator.tenmo.Exceptions.Request.RequestNotFoundException;
-import com.techelevator.tenmo.Exceptions.Request.RequestSameAccountException;
 import com.techelevator.tenmo.Exceptions.Transfer.*;
+import com.techelevator.tenmo.Exceptions.Request.*;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.RequestDao;
 import com.techelevator.tenmo.dao.TransferDao;
@@ -89,7 +88,7 @@ public class AccountController {
 
     //Get list of all pending transfers for user account
     @RequestMapping(path = "/transfer/pending", method = RequestMethod.GET)
-    public List<Transfer> list(Principal principal) {
+    public List<Transfer> listPendingTransfers(Principal principal) {
         long accountId = getUserAccountId(principal);
         return transferDao.getPendingTransfers(accountId);
     }
@@ -199,6 +198,83 @@ public class AccountController {
         return transferDao.createTransfer(userAccount.getAccountId() ,transferRequest);
     }
 
+
+
+
+
+    //***********************
+    //REQUESTS
+    //***********************
+
+
+    //Get a transfer history for User (collects all sent and received)
+    @RequestMapping( path = "/request", method = RequestMethod.GET)
+    public List<Request> getRequests(Principal principal){
+        long accountId = getUserAccountId(principal);
+        return requestDao.getRequestHistory(accountId);
+    }
+
+    //Get list of all transfers sent by user
+    @RequestMapping( path = "/request/sent", method = RequestMethod.GET)
+    public List<Request> getRequestsSent(Principal principal){
+        long accountId = getUserAccountId(principal);
+        return requestDao.getSentRequestsByAccountId(accountId);
+    }
+
+    //get list of all transfers received by user
+    @RequestMapping( path = "/request/received", method = RequestMethod.GET)
+    public List<Request> getRequestsReceived(Principal principal){
+        long accountId = getUserAccountId(principal);
+        return requestDao.getReceivedRequestsByAccountId(accountId);
+    }
+
+    //Get a transfer by transferID
+    @RequestMapping( path = "/request/id", method = RequestMethod.GET)
+    public Request getRequestById(@RequestBody RequestId requestId) throws RequestNotFoundException{
+        return requestDao.getRequestById(requestId.getRequestId());
+    }
+
+    //Get list of all pending requests for user account
+    @RequestMapping(path = "/request/pending", method = RequestMethod.GET)
+    public List<Request> listPendingRequests(Principal principal) {
+        long accountId = getUserAccountId(principal);
+        return requestDao.getPendingRequests(accountId);
+    }
+
+    @RequestMapping( path = "/request/approve", method = RequestMethod.PUT)
+    public Transfer approveRequest(@RequestBody RequestId requestId, Principal principal)
+            throws RequestClosedException, RequestNotFoundException, TransferUnsuccessfulException, TransferIdNotFoundException {
+
+        Request approvedRequest = requestDao.getRequestById(requestId.getRequestId());
+        Account userAccount = getUserAccount(principal);
+
+        //confirm user has authority to approve
+        long accountId = userAccount.getAccountId();
+        if(accountId != approvedRequest.getRequestee()){
+            throw new RequestNotFoundException();
+        }
+
+        //confirm Transfer entry is "pending"
+        if(!approvedRequest.getStatus().equals("Pending")){
+            throw new RequestClosedException();
+        }
+
+        //Confirm balance is >= transferAmount
+        if(userAccount.getBalance().compareTo(approvedRequest.getRequestedAmount()) < 0){
+            approvedRequest.setStatus("Unsuccessful");
+            requestDao.updateStatus(approvedRequest);
+            throw new TransferUnsuccessfulException();
+        }
+
+        //Process Request Approval
+        approvedRequest.setStatus("Approved");
+        accountDao.subtractFromAccountBalance(approvedRequest.getRequestee(), approvedRequest.getRequestedAmount());
+        accountDao.addToAccountBalance(approvedRequest.getRequester(), approvedRequest.getRequestedAmount());
+        requestDao.updateStatus(approvedRequest);
+
+        return transferDao.createTransferFromRequest(approvedRequest);
+    }
+
     //Create a new request
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping( path = "/request", method = RequestMethod.POST)
@@ -212,6 +288,53 @@ public class AccountController {
             throw new RequestSameAccountException();
         }
         return requestDao.createRequest(userAccount.getAccountId(), requestTransfer);
+    }
+
+    //Decline a request
+    @RequestMapping( path = "/request/decline", method = RequestMethod.PUT)
+    public Request declineRequest(@RequestBody RequestId requestId, Principal principal)
+            throws RequestClosedException, RequestNotFoundException {
+
+        Request declineRequest = requestDao.getRequestById(requestId.getRequestId());
+
+        //confirm user has authority to decline
+        long accountId = getUserAccountId(principal);
+        if(accountId != declineRequest.getRequestee()){
+            throw new RequestNotFoundException();
+        }
+
+        //confirm transfer entry is "Pending"
+        if(!declineRequest.getStatus().equals("Pending")){
+            throw new RequestClosedException();
+        }
+
+        declineRequest.setStatus("Declined");
+        requestDao.updateStatus(declineRequest);
+        return declineRequest;
+    }
+
+
+    //Cancel a request
+    @RequestMapping( path = "/request/cancel", method = RequestMethod.PUT)
+    public Request cancelRequest(@RequestBody RequestId requestId, Principal principal)
+            throws RequestClosedException, RequestNotFoundException {
+
+        Request cancelRequest = requestDao.getRequestById(requestId.getRequestId());
+
+        //confirm user has authority to cancel
+        long accountId = getUserAccountId(principal);
+        if(accountId != cancelRequest.getRequester()){
+            throw new RequestNotFoundException();
+        }
+
+        //confirm transfer entry is "Pending"
+        if(!cancelRequest.getStatus().equals("Pending")){
+            throw new RequestClosedException();
+        }
+
+        cancelRequest.setStatus("Canceled");
+        requestDao.updateStatus(cancelRequest);
+        return cancelRequest;
     }
 
 

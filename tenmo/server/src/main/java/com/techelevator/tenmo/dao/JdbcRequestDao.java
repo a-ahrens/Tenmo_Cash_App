@@ -23,7 +23,7 @@ public class JdbcRequestDao implements RequestDao{
     @Override
     public Request getRequestById(long requestId) {
         Request request = null;
-        String sql = "SELECT request_id, requester, requestee, requested_amount " +
+        String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                      "time_stamp, status, description " +
                      "FROM request " +
                      "WHERE request_id = ?;";
@@ -38,7 +38,7 @@ public class JdbcRequestDao implements RequestDao{
     @Override
     public List<Request> getRequestHistory(long accountId) {
         List<Request> requests = new ArrayList<>();
-        String sql = "SELECT request_id, requester, requestee, requested_amount " +
+        String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                      "time_stamp, status, description " +
                      "FROM request " +
                      "WHERE requester = ? OR requestee = ?;";
@@ -53,7 +53,7 @@ public class JdbcRequestDao implements RequestDao{
     @Override
     public List<Request> getSentRequestsByAccountId(long accountId) {
         List<Request> requests = new ArrayList<>();
-        String sql = "SELECT request_id, requester, requestee, requested_amount " +
+        String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                      "time_stamp, status, description " +
                      "FROM request " +
                      "WHERE requester = ?;";
@@ -68,7 +68,7 @@ public class JdbcRequestDao implements RequestDao{
     @Override
     public List<Request> getReceivedRequestsByAccountId(long accountId) {
         List<Request> requests = new ArrayList<>();
-        String sql = "SELECT request_id, requester, requestee, requested_amount " +
+        String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                      "time_stamp, status, description " +
                      "FROM request " +
                      "WHERE requestee = ?;";
@@ -83,13 +83,13 @@ public class JdbcRequestDao implements RequestDao{
     @Override
     public List<Request> getPendingRequests(long accountId) {
         List<Request> requests = new ArrayList<>();
-        String sql = "SELECT request_id, requester, requestee, requested_amount " +
+        String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                 "time_stamp, status, description " +
                 "FROM request " +
-                "WHERE requestee = ? " +
+                "WHERE requester = ? OR requestee = ? " +
                 "ORDER BY requester";
 
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
         while(results.next()) {
             requests.add(mapRowToRequest(results));
         }
@@ -98,7 +98,7 @@ public class JdbcRequestDao implements RequestDao{
 
     @Override
     public Request createRequest(long requesterAccountId, RequestTransfer newRequest) {
-        String sql = "INSERT INTO request (requester, requestee, requested_amount, description " +
+        String sql = "INSERT INTO request (requester, requestee, requested_amount, description) " +
                      "VALUES (?, ?, ?, ?) " +
                      "RETURNING request_id;";
         Long requestId = 0L;
