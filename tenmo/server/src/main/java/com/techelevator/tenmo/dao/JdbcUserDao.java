@@ -1,16 +1,15 @@
 package com.techelevator.tenmo.dao;
 
-import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.Account.Account;
 import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.model.UserAccount;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,25 +34,32 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public List<User> findAll() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT user_id, username, password_hash FROM tenmo_user;";
+    public List<UserAccount> findAll() {
+        List<UserAccount> users = new ArrayList<>();
+        String sql = "SELECT tenmo_user.username, account_id " +
+                     "FROM account " +
+                     "JOIN tenmo_user ON tenmo_user.user_id = account.user_id " +
+                     "ORDER BY username;";
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
         while(results.next()) {
-            User user = mapRowToUser(results);
+            UserAccount user = mapRowToUserAccount(results);
             users.add(user);
         }
         return users;
     }
 
     @Override
-    public List<User> findOtherUsers(long userId) {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT user_id, username, password_hash FROM tenmo_user " +
-                "WHERE user_id != ? ;";
+    public List<UserAccount> findOtherUsers(long userId) {
+        List<UserAccount> users = new ArrayList<>();
+        String sql = "SELECT tenmo_user.username, account_id " +
+                     "FROM account " +
+                     "JOIN tenmo_user ON tenmo_user.user_id = account.user_id " +
+                     "WHERE tenmo_user.user_id != ? " +
+                     "ORDER BY username;";
+
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql,userId);
         while(results.next()) {
-            User user = mapRowToUser(results);
+            UserAccount user = mapRowToUserAccount(results);
             users.add(user);
         }
         return users;
@@ -86,7 +92,6 @@ public class JdbcUserDao implements UserDao {
             return false;
         }
 
-        // TODO: Create the account record with initial balance
         Account newAccount= new Account();
         String accountSql= "INSERT INTO account (user_id, balance) VALUES(?, ?) RETURNING account_id;";
         try {
@@ -105,5 +110,12 @@ public class JdbcUserDao implements UserDao {
         user.setActivated(true);
         user.setAuthorities("USER");
         return user;
+    }
+
+    private UserAccount mapRowToUserAccount(SqlRowSet rs) {
+        UserAccount userAccount = new UserAccount();
+        userAccount.setAccountId(rs.getLong("account_id"));
+        userAccount.setUsername(rs.getString("username"));
+        return userAccount;
     }
 }

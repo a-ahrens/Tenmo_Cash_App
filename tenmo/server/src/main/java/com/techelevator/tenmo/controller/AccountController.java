@@ -1,7 +1,5 @@
 package com.techelevator.tenmo.controller;
 
-
-
 import com.techelevator.tenmo.Exceptions.Transfer.*;
 import com.techelevator.tenmo.Exceptions.Request.*;
 import com.techelevator.tenmo.dao.AccountDao;
@@ -9,6 +7,14 @@ import com.techelevator.tenmo.dao.RequestDao;
 import com.techelevator.tenmo.dao.TransferDao;
 import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.model.*;
+import com.techelevator.tenmo.model.Account.Account;
+import com.techelevator.tenmo.model.Account.Deposit;
+import com.techelevator.tenmo.model.Request.Request;
+import com.techelevator.tenmo.model.Request.RequestId;
+import com.techelevator.tenmo.model.Request.RequestTransfer;
+import com.techelevator.tenmo.model.Transfer.Transfer;
+import com.techelevator.tenmo.model.Transfer.TransferId;
+import com.techelevator.tenmo.model.Transfer.TransferRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,14 +40,14 @@ public class AccountController {
 
     //Get list of all users including user
     @RequestMapping(path = "/user/all", method=RequestMethod.GET)
-    public List<User> findAll()
+    public List<UserAccount> findAll()
     {
         return userDao.findAll();
     }
 
     //Get list of all other users
-    @RequestMapping(path = "/user", method = RequestMethod.GET)
-    public List<User> findOtherUsers(Principal principal) {
+    @RequestMapping(path = "/user/other", method = RequestMethod.GET)
+    public List<UserAccount> findOtherUsers(Principal principal) {
         String userName = principal.getName();
     long userId = userDao.findIdByUsername(userName);
 
@@ -64,6 +70,16 @@ public class AccountController {
         Account userAccount = getUserAccount(principal);
          return userAccount.getBalance();
     }
+
+    //Add money to user account balance
+    @RequestMapping(path="/account/deposit", method=RequestMethod.PUT)
+    public BigDecimal depositMoneyIntoAccount(@RequestBody Deposit deposit, Principal principal){
+        Account userAccount = getUserAccount(principal);
+        accountDao.addToAccountBalance(userAccount.getAccountId(), deposit.getAmount());
+
+        return accountDao.getBalance(userAccount.getAccountId());
+    }
+
 
     //Get a transfer history for User (collects all sent and received)
     @RequestMapping( path = "/transfer", method = RequestMethod.GET)
@@ -117,8 +133,8 @@ public class AccountController {
             throw new TransferClosedException();
         }
 
-        //Confirm balance is >= transferAmount
-        if(userAccount.getBalance().compareTo(approvedTransfer.getTransferAmount()) < 0){
+        //Confirm sender balance is >= transferAmount
+        if(accountDao.getBalance(approvedTransfer.getFromAccount()).compareTo(approvedTransfer.getTransferAmount()) < 0){
             approvedTransfer.setStatus("Unsuccessful");
             transferDao.updateStatus(approvedTransfer);
             throw new TransferUnsuccessfulException();
@@ -207,28 +223,28 @@ public class AccountController {
     //***********************
 
 
-    //Get a transfer history for User (collects all sent and received)
+    //Get a request history for User (collects all sent and received)
     @RequestMapping( path = "/request", method = RequestMethod.GET)
     public List<Request> getRequests(Principal principal){
         long accountId = getUserAccountId(principal);
         return requestDao.getRequestHistory(accountId);
     }
 
-    //Get list of all transfers sent by user
+    //Get list of all requests sent by user
     @RequestMapping( path = "/request/sent", method = RequestMethod.GET)
     public List<Request> getRequestsSent(Principal principal){
         long accountId = getUserAccountId(principal);
         return requestDao.getSentRequestsByAccountId(accountId);
     }
 
-    //get list of all transfers received by user
+    //get list of all requests received by user
     @RequestMapping( path = "/request/received", method = RequestMethod.GET)
     public List<Request> getRequestsReceived(Principal principal){
         long accountId = getUserAccountId(principal);
         return requestDao.getReceivedRequestsByAccountId(accountId);
     }
 
-    //Get a transfer by transferID
+    //Get a request by requestID
     @RequestMapping( path = "/request/id", method = RequestMethod.GET)
     public Request getRequestById(@RequestBody RequestId requestId) throws RequestNotFoundException{
         return requestDao.getRequestById(requestId.getRequestId());
@@ -254,12 +270,12 @@ public class AccountController {
             throw new RequestNotFoundException();
         }
 
-        //confirm Transfer entry is "pending"
+        //confirm request entry is "pending"
         if(!approvedRequest.getStatus().equals("Pending")){
             throw new RequestClosedException();
         }
 
-        //Confirm balance is >= transferAmount
+        //Confirm requestee balance is >= transferAmount
         if(userAccount.getBalance().compareTo(approvedRequest.getRequestedAmount()) < 0){
             approvedRequest.setStatus("Unsuccessful");
             requestDao.updateStatus(approvedRequest);

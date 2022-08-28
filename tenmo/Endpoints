@@ -1,0 +1,147 @@
+Endpoint Paths and Information
+
+*******************************************
+                User-Related
+*******************************************
+
+- path = "/user/all", method = GET
+    Function: Get list of all users with account including user
+
+- path = "/user/other", method = GET
+    Function: Get list of all other usernames with account
+
+
+
+
+
+********************************************
+              Account-Related
+********************************************
+
+- path = "/account", method = GET
+    Function: Get all user account info
+    
+- path="/account/balance", method = GET
+    Function: Get the user's balance
+    
+- path="/account/deposit", method = PUT
+    Function: Add money to user account balance
+    Model:
+        {
+            "deposit" : "50.00"
+        } 
+
+
+
+
+**********************************************
+             Transfer-Related
+**********************************************
+
+- path = "/transfer", method = GET
+    Function: Get a transfer history for User (collects all sent and received)
+
+- path = "/transfer/sent", method = GET
+    Function: Get list of all transfers sent by user
+    
+- path = "/transfer/received", method = GET
+    Function: get list of all transfers received by user
+    
+- path = "/transfer/pending", method = GET
+    Function: Get list of all pending transfers for user account
+
+- path = "/transfer/id", method = GET
+    Function: Get a transfer by transferID
+    Model:
+        {
+            "transferId" : "3001"
+        }
+        
+- path = "/transfer", method = POST
+    Function: Create a new transfer from your account to another user
+    Model
+        {
+                 "toAccount" : "2001",
+            "transferAmount" : "50.00",
+               "description" : "Rent payment"
+        }
+        
+- path = "/transfer/approve", method = PUT
+    Function: Approve a transfer to your account
+    Model:
+        {
+            "transferId" : "3001"
+        }
+        
+- path = "/transfer/decline", method = PUT
+    Function: Decline a transfer to your account
+    Model:
+        {
+            "transferId" : "3001"
+        }
+    
+- path = "/transfer/cancel", method = PUT
+    Function: Cancel a transfer from your account
+    Model:
+        {
+            "transferId" : "3001"
+        }
+
+
+
+***************************************************
+                 Request-Related
+***************************************************
+
+- path = "/request", method = GET
+    Function: Get a request history for User (collects all sent and received)
+
+- path = "/request/id", method = GET
+    Function: Get a request by requestID
+    Model:
+        {
+            "requestId" : "4001"
+        } 
+
+- path = "/request/sent", method = GET
+    Function: Get list of all requests sent by user
+    
+- path = "/request/received", method = GET
+    Function: get list of all requests received by user
+ 
+- path = "/request/pending", method = GET
+    Function: Get list of all pending requests for user account
+
+-  path = "/request", method = POST
+    Function: Send a new request to a requestee's accountID for money
+    Model:
+        {
+                "requestee" : "2001",
+            "requestAmount" : "50.00",
+              "description" : "Send me rent money"
+        }
+    
+- path = "/request/approve", method = RequestMethod.PUT
+    Function: Approve a request to send someone money
+    Model:
+            {
+                "requestId" : "4001"
+            } 
+- path = "/request/decline", method = PUT
+    Function: Decline a request that's been sent to user
+    Model:
+            {
+                "requestId" : "4001"
+            }
+
+- path = "/request/cancel", method = PUT
+    Function: Cancel a request sent by user
+    Model:
+            {
+                "requestId" : "4001"
+            }
+
+-             
+        
+
+

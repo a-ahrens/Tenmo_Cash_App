@@ -1,7 +1,6 @@
 package com.techelevator.tenmo.dao;
 
-import com.techelevator.tenmo.Exceptions.Account.AccountNotFoundException;
-import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.Account.Account;
 
 import java.math.BigDecimal;
 

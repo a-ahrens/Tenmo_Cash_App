@@ -45,7 +45,8 @@ CREATE TABLE transfer (
 	to_account int NOT NULL,
 	transfer_amount decimal(13, 2) NOT NULL,
 	time_stamp timestamp DEFAULT current_timestamp,
-	status varchar(10) NOT NULL DEFAULT 'Pending',
+	status varchar(20) NOT NULL DEFAULT 'Pending',
+	description varchar(50) NOT NULL DEFAULT ' ',
 	CONSTRAINT PK_transfer PRIMARY KEY (transfer_id),
 	CONSTRAINT FK_transfer_account_from FOREIGN KEY (from_account) REFERENCES account (account_id),
 	CONSTRAINT FK_transfer_account_to FOREIGN KEY (to_account) REFERENCES account (account_id)
@@ -58,14 +59,14 @@ CREATE SEQUENCE seq_request_id
 
 CREATE TABLE request (
 	request_id int NOT NULL DEFAULT nextval('seq_request_id'),
-	requestor int NOT NULL,
+	requester int NOT NULL,
 	requestee int NOT NULL,
 	requested_amount decimal(13, 2) NOT NULL,
 	time_stamp timestamp DEFAULT current_timestamp,
-	status varchar(10) NOT NULL DEFAULT 'Pending',
+	status varchar(20) NOT NULL DEFAULT 'Pending',
 	description varchar(50) NOT NULL DEFAULT ' ',
 	CONSTRAINT PK_request PRIMARY KEY (request_id),
-	CONSTRAINT FK_request_account_requestor FOREIGN KEY (requestor) REFERENCES account (account_id),
+	CONSTRAINT FK_request_account_requester FOREIGN KEY (requester) REFERENCES account (account_id),
 	CONSTRAINT FK_request_account_requestee FOREIGN KEY (requestee) REFERENCES account (account_id)
 );
 

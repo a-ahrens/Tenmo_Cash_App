@@ -1,8 +1,8 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.Exceptions.Request.RequestNotFoundException;
-import com.techelevator.tenmo.model.Request;
-import com.techelevator.tenmo.model.RequestTransfer;
+import com.techelevator.tenmo.model.Request.Request;
+import com.techelevator.tenmo.model.Request.RequestTransfer;
 
 import java.util.List;
 

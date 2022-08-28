@@ -1,9 +1,9 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.Exceptions.Transfer.TransferIdNotFoundException;
-import com.techelevator.tenmo.model.Request;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.TransferRequest;
+import com.techelevator.tenmo.model.Request.Request;
+import com.techelevator.tenmo.model.Transfer.Transfer;
+import com.techelevator.tenmo.model.Transfer.TransferRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;

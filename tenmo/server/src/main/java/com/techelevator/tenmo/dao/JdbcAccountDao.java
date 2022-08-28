@@ -1,15 +1,11 @@
 package com.techelevator.tenmo.dao;
 
-import com.techelevator.tenmo.Exceptions.Account.AccountNotFoundException;
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.model.Account.Account;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class JdbcAccountDao implements AccountDao{
@@ -49,7 +45,7 @@ public class JdbcAccountDao implements AccountDao{
 
     @Override
     public void addToAccountBalance(long accountId, BigDecimal amount) {
-       Account updatedAccount= getAccountByAccountId(accountId);
+       Account updatedAccount = getAccountByAccountId(accountId);
        updatedAccount.addToBalance(amount);
         String sql = "UPDATE account " +
                 "SET balance = ? " +

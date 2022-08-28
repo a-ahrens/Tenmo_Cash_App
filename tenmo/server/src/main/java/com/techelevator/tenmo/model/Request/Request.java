@@ -1,4 +1,4 @@
-package com.techelevator.tenmo.model;
+package com.techelevator.tenmo.model.Request;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

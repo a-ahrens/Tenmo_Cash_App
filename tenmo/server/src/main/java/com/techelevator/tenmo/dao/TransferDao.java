@@ -1,9 +1,9 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.Exceptions.Transfer.TransferIdNotFoundException;
-import com.techelevator.tenmo.model.Request;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.TransferRequest;
+import com.techelevator.tenmo.model.Request.Request;
+import com.techelevator.tenmo.model.Transfer.Transfer;
+import com.techelevator.tenmo.model.Transfer.TransferRequest;
 
 import java.util.List;
 

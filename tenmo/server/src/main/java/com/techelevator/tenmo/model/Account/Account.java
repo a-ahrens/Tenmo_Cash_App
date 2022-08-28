@@ -1,4 +1,4 @@
-package com.techelevator.tenmo.model;
+package com.techelevator.tenmo.model.Account;
 
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;

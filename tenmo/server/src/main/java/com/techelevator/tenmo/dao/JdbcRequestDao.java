@@ -1,9 +1,8 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.Exceptions.Request.RequestNotFoundException;
-import com.techelevator.tenmo.model.Request;
-import com.techelevator.tenmo.model.RequestTransfer;
-import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.Request.Request;
+import com.techelevator.tenmo.model.Request.RequestTransfer;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -86,7 +85,7 @@ public class JdbcRequestDao implements RequestDao{
         String sql = "SELECT request_id, requester, requestee, requested_amount, " +
                 "time_stamp, status, description " +
                 "FROM request " +
-                "WHERE requester = ? OR requestee = ? " +
+                "WHERE (requester = ? OR requestee = ? ) AND status LIKE 'Pending' " +
                 "ORDER BY requester";
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
